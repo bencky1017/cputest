@@ -1,18 +1,619 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="zh-CN">
 
 <head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/cpu-benchmark/vite.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vite + Vue</title>
-  <script type="module" crossorigin src="/cpu-benchmark/assets/index-cd827f73.js"></script>
-  <link rel="stylesheet" href="/cpu-benchmark/assets/index-28ebe74d.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>手机芯片综合性能排行榜</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background-color: #0a0e17;
+            color: #e0e0e0;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #1e2638;
+        }
+
+        h1 {
+            color: #6c63ff;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #6c63ff, #9d9aff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .subtitle {
+            color: #8a94a6;
+            font-size: 1.1rem;
+        }
+
+        .data-source {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .source-tag {
+            background-color: #1a1f2e;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #8a94a6;
+        }
+
+        .source-tag i {
+            margin-right: 5px;
+            color: #6c63ff;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .weight-control {
+            background-color: #111827;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .weight-control h2 {
+            color: #9d9aff;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .slider-label {
+            display: flex;
+            flex-direction: column;
+            width: 200px;
+        }
+
+        .slider-label span {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .slider-label .value {
+            color: #6c63ff;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .slider {
+            flex-grow: 1;
+            -webkit-appearance: none;
+            height: 10px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #6c63ff, #ff6b9d);
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(108, 99, 255, 0.8);
+        }
+
+        .weight-summary {
+            display: flex;
+            justify-content: space-between;
+            background-color: #1a1f2e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .weight-item {
+            text-align: center;
+        }
+
+        .weight-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #6c63ff;
+        }
+
+        .weight-name {
+            color: #8a94a6;
+            font-size: 0.9rem;
+        }
+
+        .rankings-section {
+            display: flex;
+            gap: 30px;
+        }
+
+        .ranking-table {
+            flex: 1;
+            background-color: #111827;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .ranking-table h2 {
+            color: #9d9aff;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background-color: #1a1f2e;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #9d9aff;
+            border-bottom: 2px solid #2d3748;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #2d3748;
+        }
+
+        tr:hover {
+            background-color: #1a1f2e;
+        }
+
+        .chip-name {
+            font-weight: 600;
+            color: #e0e0e0;
+        }
+
+        .rank {
+            font-weight: bold;
+            color: #6c63ff;
+            width: 50px;
+        }
+
+        .score {
+            font-weight: 600;
+            color: #ff6b9d;
+        }
+
+        .bar-container {
+            width: 100%;
+            height: 20px;
+            background-color: #1a1f2e;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .bar {
+            height: 100%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #6c63ff, #9d9aff);
+        }
+
+        .chip-brand {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .apple {
+            background-color: rgba(0, 122, 255, 0.2);
+            color: #5d9cff;
+        }
+
+        .qualcomm {
+            background-color: rgba(0, 153, 51, 0.2);
+            color: #4cd964;
+        }
+
+        .mediatek {
+            background-color: rgba(255, 45, 85, 0.2);
+            color: #ff6b9d;
+        }
+
+        .samsung {
+            background-color: rgba(0, 204, 255, 0.2);
+            color: #5ac8fa;
+        }
+
+        .other {
+            background-color: rgba(142, 68, 173, 0.2);
+            color: #af7ac5;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #1e2638;
+            color: #8a94a6;
+            font-size: 0.9rem;
+        }
+
+        .note {
+            background-color: #1a1f2e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #8a94a6;
+        }
+
+        .note i {
+            color: #6c63ff;
+            margin-right: 8px;
+        }
+
+        @media (max-width: 992px) {
+            .rankings-section {
+                flex-direction: column;
+            }
+
+            .slider-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .slider-label {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 
 <body>
-  <div id="app"></div>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-microchip"></i> 手机芯片综合性能排行榜</h1>
+            <p class="subtitle">根据单核与多核跑分加权计算综合性能，权重可自定义调整</p>
+        </header>
 
+        <main class="main-content">
+            <section class="weight-control">
+                <h2><i class="fas fa-sliders-h"></i> 权重设置</h2>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>单核跑分权重: <span class="value" id="singleCoreValue">70%</span></span>
+                        <input type="range" min="0" max="100" value="70" class="slider" id="singleCoreSlider">
+                    </div>
+                    <div class="slider-label">
+                        <span>多核跑分权重: <span class="value" id="multiCoreValue">30%</span></span>
+                        <input type="range" min="0" max="100" value="30" class="slider" id="multiCoreSlider">
+                    </div>
+                </div>
+                <div class="weight-summary">
+                    <div class="weight-item">
+                        <div class="weight-value" id="singleWeight">70%</div>
+                        <div class="weight-name">单核跑分权重</div>
+                    </div>
+                    <div class="weight-item">
+                        <div class="weight-value" id="multiWeight">30%</div>
+                        <div class="weight-name">多核跑分权重</div>
+                    </div>
+                    <div class="weight-item">
+                        <div class="weight-value" id="totalWeight">100%</div>
+                        <div class="weight-name">权重总和</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="rankings-section">
+                <div class="ranking-table">
+                    <h2><i class="fas fa-trophy"></i> 综合性能排行榜</h2>
+                    <table id="rankingsTable">
+                        <thead>
+                            <tr>
+                                <th width="60">排名</th>
+                                <th>芯片型号</th>
+                                <th width="120">综合得分</th>
+                                <th width="200">性能柱状图</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rankingsBody">
+                            <!-- 动态生成排行榜 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="ranking-table">
+                    <h2><i class="fas fa-info-circle"></i> 详细跑分数据</h2>
+                    <table id="detailsTable">
+                        <thead>
+                            <tr>
+                                <th>芯片型号</th>
+                                <th width="100">单核得分</th>
+                                <th width="100">多核得分</th>
+                                <th width="120">加权得分</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailsBody">
+                            <!-- 动态生成详细数据 -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // 从图片中提取的数据
+        const singleCoreData = [
+            { name: "A20 Pro", score: 1000, brand: "apple" },
+            { name: "A19 Pro", score: 3800, brand: "apple" },
+            { name: "A19", score: 3600, brand: "apple" },
+            { name: "A18 Pro", score: 3610, brand: "apple" },
+            { name: "A18", score: 3568, brand: "apple" },
+            { name: "骁龙8 Elite", score: 3256, brand: "qualcomm" },
+            { name: "玄戒01", score: 3091, brand: "other" },
+            { name: "A17 Pro", score: 2995, brand: "apple" },
+            { name: "骁龙8 Elite2", score: 3557, brand: "qualcomm" },
+            { name: "天玑9400", score: 2943, brand: "mediatek" },
+            { name: "A16", score: 2673, brand: "apple" },
+            { name: "A15", score: 2431, brand: "apple" },
+            { name: "天玑9300+", score: 2350, brand: "mediatek" },
+            { name: "天玑9400e", score: 2322, brand: "mediatek" },
+            { name: "骁龙8 Gen3", score: 2301, brand: "qualcomm" },
+            { name: "天玑9300", score: 2277, brand: "mediatek" },
+            { name: "A14", score: 2241, brand: "apple" }
+        ];
+
+        const multiCoreData = [
+            { name: "A20 Pro", score: 20000, brand: "apple" },
+            { name: "A19 Pro", score: 10000, brand: "apple" },
+            { name: "A19", score: 9200, brand: "apple" },
+            { name: "骁龙8 Elite", score: 10358, brand: "qualcomm" },
+            { name: "骁龙8 Elite2", score: 10836, brand: "qualcomm" },
+            { name: "玄戒O1", score: 9618, brand: "other" },
+            { name: "A18 Pro", score: 9214, brand: "apple" },
+            { name: "天玑9400", score: 9210, brand: "mediatek" },
+            { name: "A18", score: 8912, brand: "apple" },
+            { name: "A17 Pro", score: 7832, brand: "apple" },
+            { name: "天玑9400e", score: 7777, brand: "mediatek" },
+            { name: "天玑9300+", score: 7699, brand: "mediatek" },
+            { name: "天玑9300", score: 7699, brand: "mediatek" },
+            { name: "骁龙8 Gen3", score: 7421, brand: "qualcomm" },
+            { name: "A16", score: 7130, brand: "apple" },
+            { name: "A15", score: 6185, brand: "apple" },
+            { name: "A14", score: 5394, brand: "apple" }
+        ];
+
+        // 获取DOM元素
+        const singleCoreSlider = document.getElementById('singleCoreSlider');
+        const multiCoreSlider = document.getElementById('multiCoreSlider');
+        const singleCoreValue = document.getElementById('singleCoreValue');
+        const multiCoreValue = document.getElementById('multiCoreValue');
+        const singleWeight = document.getElementById('singleWeight');
+        const multiWeight = document.getElementById('multiWeight');
+        const totalWeight = document.getElementById('totalWeight');
+        const rankingsBody = document.getElementById('rankingsBody');
+        const detailsBody = document.getElementById('detailsBody');
+
+        // 初始化权重
+        let singleWeightValue = 70;
+        let multiWeightValue = 30;
+
+        // 更新权重显示
+        function updateWeightDisplay() {
+            singleCoreValue.textContent = `${singleWeightValue}%`;
+            multiCoreValue.textContent = `${multiWeightValue}%`;
+            singleWeight.textContent = `${singleWeightValue}%`;
+            multiWeight.textContent = `${multiWeightValue}%`;
+            totalWeight.textContent = `${singleWeightValue + multiWeightValue}%`;
+
+            // 同步滑块
+            singleCoreSlider.value = singleWeightValue;
+            multiCoreSlider.value = multiWeightValue;
+        }
+
+        // 查找芯片数据
+        function findChipData(chipName) {
+            // 处理芯片名称可能的差异
+            const normalizedChipName = chipName.replace(/\s+/g, '');
+
+            // 在单核数据中查找
+            const singleCoreItem = singleCoreData.find(item =>
+                item.name.replace(/\s+/g, '') === normalizedChipName ||
+                (chipName.includes("玄戒") && item.name.includes("玄戒"))
+            );
+
+            // 在多核数据中查找
+            const multiCoreItem = multiCoreData.find(item =>
+                item.name.replace(/\s+/g, '') === normalizedChipName ||
+                (chipName.includes("玄戒") && item.name.includes("玄戒"))
+            );
+
+            return { singleCoreItem, multiCoreItem };
+        }
+
+        // 获取所有在两图中都存在的芯片
+        function getAllChips() {
+            const chips = [];
+
+            // 检查单核数据中的芯片是否在多核数据中存在
+            singleCoreData.forEach(singleItem => {
+                const multiItem = multiCoreData.find(multiItem => {
+                    const singleName = singleItem.name.replace(/\s+/g, '');
+                    const multiName = multiItem.name.replace(/\s+/g, '');
+
+                    // 处理玄戒芯片名称差异
+                    if (singleName.includes("玄戒") && multiName.includes("玄戒")) {
+                        return true;
+                    }
+
+                    return singleName === multiName;
+                });
+
+                if (multiItem) {
+                    chips.push({
+                        name: singleItem.name,
+                        singleScore: singleItem.score,
+                        multiScore: multiItem.score,
+                        brand: singleItem.brand
+                    });
+                }
+            });
+
+            return chips;
+        }
+
+        // 计算综合得分
+        // 使用固定基准分数：单核3305，多核18221
+        function calculateCompositeScore(chips, singleWeight, multiWeight) {
+            const BASE_SINGLE_SCORE = 3305;
+            const BASE_MULTI_SCORE = 18221;
+
+            return chips.map(chip => {
+                // 按照公式: Score = 100 × [singleWeight × (SC/3305) + multiWeight × (MC/18221)]
+                const normalizedSingle = chip.singleScore / BASE_SINGLE_SCORE;
+                const normalizedMulti = chip.multiScore / BASE_MULTI_SCORE;
+
+                const compositeScore = 100 * ((singleWeight / 100) * normalizedSingle + (multiWeight / 100) * normalizedMulti);
+
+                return {
+                    ...chip,
+                    normalizedSingle: normalizedSingle * 100,
+                    normalizedMulti: normalizedMulti * 100,
+                    compositeScore
+                };
+            });
+        }
+
+        // 生成品牌标签
+        function getBrandClass(brand) {
+            switch (brand) {
+                case 'apple': return 'apple';
+                case 'qualcomm': return 'qualcomm';
+                case 'mediatek': return 'mediatek';
+                case 'samsung': return 'samsung';
+                default: return 'other';
+            }
+        }
+
+        // 生成品牌名称
+        function getBrandName(brand) {
+            switch (brand) {
+                case 'apple': return '苹果';
+                case 'qualcomm': return '高通';
+                case 'mediatek': return '联发科';
+                case 'samsung': return '三星';
+                default: return '其他';
+            }
+        }
+
+        // 渲染排行榜
+        function renderRankings() {
+            const chips = getAllChips();
+            const weightedChips = calculateCompositeScore(chips, singleWeightValue, multiWeightValue);
+
+            // 按综合得分排序
+            weightedChips.sort((a, b) => b.compositeScore - a.compositeScore);
+
+            // 清空表格
+            rankingsBody.innerHTML = '';
+            detailsBody.innerHTML = '';
+
+            // 找到最高分用于柱状图比例
+            const maxCompositeScore = Math.max(...weightedChips.map(chip => chip.compositeScore));
+
+            // 填充排行榜
+            weightedChips.forEach((chip, index) => {
+                const rank = index + 1;
+                const barWidth = (chip.compositeScore / maxCompositeScore) * 100;
+
+                // 排行榜表格
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="rank">${rank}</td>
+                    <td>
+                        <span class="chip-name">${chip.name}</span>
+                    </td>
+                    <td class="score">${chip.compositeScore.toFixed(1)}</td>
+                    <td>
+                        <div class="bar-container">
+                            <div class="bar" style="width: ${barWidth}%"></div>
+                        </div>
+                    </td>
+                `;
+                rankingsBody.appendChild(row);
+
+                // 详细数据表格
+                const detailRow = document.createElement('tr');
+                detailRow.innerHTML = `
+                    <td>
+                        <span class="chip-name">${chip.name}</span>
+                        <span class="chip-brand ${getBrandClass(chip.brand)}">${getBrandName(chip.brand)}</span>
+                    </td>
+                    <td>${chip.singleScore}</td>
+                    <td>${chip.multiScore}</td>
+                    <td class="score">${chip.compositeScore.toFixed(1)}</td>
+                `;
+                detailsBody.appendChild(detailRow);
+            });
+        }
+
+        // 滑块事件监听
+        singleCoreSlider.addEventListener('input', function () {
+            singleWeightValue = parseInt(this.value);
+            multiWeightValue = 100 - singleWeightValue;
+            updateWeightDisplay();
+            renderRankings();
+        });
+
+        multiCoreSlider.addEventListener('input', function () {
+            multiWeightValue = parseInt(this.value);
+            singleWeightValue = 100 - multiWeightValue;
+            updateWeightDisplay();
+            renderRankings();
+        });
+
+        // 初始化页面
+        updateWeightDisplay();
+        renderRankings();
+    </script>
 </body>
 
 </html>
